@@ -7,6 +7,7 @@
 <title>Inkwell Print Shop — Fast Xerox & Printing</title>
 <link rel="stylesheet" href="styles.css">
 <script src="https://unpkg.com/parse/dist/parse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
 <body>
 
@@ -318,6 +319,7 @@
           <div class="summary-caption">Auto-calculated · min charge ₹1</div>
 
           <div class="summary-row"><span>Pages × copies</span><strong id="sumPagesCopies">1 × 1</strong></div>
+          <div class="rate-breakdown" id="rateBreakdown" aria-live="polite"></div>
           <div class="summary-row"><span>Paper Type</span><strong id="sumPaperType">Standard</strong></div>
           <div class="summary-row"><span>Color</span><strong id="sumColor">B&amp;W</strong></div>
           <div class="summary-row"><span>Sides</span><strong id="sumSides">Single</strong></div>

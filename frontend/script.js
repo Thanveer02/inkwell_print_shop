@@ -597,6 +597,12 @@
   let selectedBinding = "none";
   let selectedPageMode = "all";
   let uploadedFiles = [];
+  const pdfPageCounts = new WeakMap();
+
+  if (window.pdfjsLib) {
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  }
 
   // Default ready-by = now + 2 hours
   (function setDefaultReadyBy() {
@@ -632,23 +638,22 @@
   function parseCustomPages(str) {
     if (!str || !str.trim()) return 1;
     const s = str.trim();
-    if (/^\d+$/.test(s)) return Math.max(1, parseInt(s, 10));
+    const totalPages = Math.max(1, parseInt(numPages.value, 10) || 1);
+    const selectedPages = new Set();
 
-    let count = 0;
-    const parts = s.split(",");
-    for (let part of parts) {
-      part = part.trim();
-      if (part.includes("-")) {
-        const [start, end] = part.split("-").map((n) => parseInt(n.trim(), 10));
-        if (!isNaN(start) && !isNaN(end) && end >= start) {
-          count += end - start + 1;
-        }
-      } else {
-        const num = parseInt(part, 10);
-        if (!isNaN(num)) count += 1;
+    for (const part of s.split(",")) {
+      const match = part.trim().match(/^(\d+)(?:\s*-\s*(\d+))?$/);
+      if (!match) continue;
+
+      const start = Number(match[1]);
+      const end = Number(match[2] || match[1]);
+      if (end < start) continue;
+
+      for (let page = Math.max(1, start); page <= Math.min(totalPages, end); page += 1) {
+        selectedPages.add(page);
       }
     }
-    return count > 0 ? count : 1;
+    return selectedPages.size || 1;
   }
 
   function computePrice() {
@@ -695,6 +700,14 @@
 
   function updateSummary() {
     const { pages, copies, price } = computePrice();
+    const rateBreakdown = document.getElementById("rateBreakdown");
+    const printUnits = pages * copies;
+    const formatPrice = (amount) => `₹${amount.toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+    rateBreakdown.innerHTML = `
+      <strong>Print price for ${pages} page${pages === 1 ? "" : "s"} × ${copies} ${copies === 1 ? "copy" : "copies"}</strong>
+      <span><span>B&W — single side (₹1/page)</span><b>${formatPrice(printUnits)}</b></span>
+      <span><span>B&W — double side (₹1.3/page)</span><b>${formatPrice(printUnits * 1.3)}</b></span>
+      <span><span>Color (₹5/page)</span><b>${formatPrice(printUnits * 5)}</b></span>`;
     document.getElementById("summaryTotal").textContent = "₹" + price.toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
     
     if (selectedPageMode === "custom") {
@@ -719,6 +732,45 @@
   const fileInput = document.getElementById("fileInput");
   const fileListEl = document.getElementById("fileList");
 
+  function isPdf(file) {
+    return file?.type === "application/pdf" || /\.pdf$/i.test(file?.name || "");
+  }
+
+  async function countPdfPages(file) {
+    if (!window.pdfjsLib) throw new Error("PDF page counter is unavailable");
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const pdf = await window.pdfjsLib.getDocument({ data: bytes }).promise;
+    const count = pdf.numPages;
+    await pdf.destroy();
+    return count;
+  }
+
+  async function updateDetectedPageCount() {
+    const pdfFiles = uploadedFiles.filter(isPdf);
+    if (!pdfFiles.length) return;
+
+    try {
+      await Promise.all(pdfFiles.map(async (file) => {
+        if (!pdfPageCounts.has(file)) pdfPageCounts.set(file, await countPdfPages(file));
+      }));
+      const totalPages = pdfFiles.reduce((sum, file) => sum + (pdfPageCounts.get(file) || 0), 0);
+      if (totalPages) {
+        numPages.value = totalPages;
+        updateSummary();
+        renderFileList();
+      }
+    } catch (error) {
+      console.error("Unable to count PDF pages", error);
+      showToast("Could not read PDF pages. Please enter the page count.");
+    }
+  }
+
+  function addUploadedFiles(files) {
+    uploadedFiles.push(...files);
+    renderFileList();
+    updateDetectedPageCount();
+  }
+
   function renderFileList() {
     fileListEl.innerHTML = uploadedFiles
       .map(
@@ -731,12 +783,12 @@
       btn.addEventListener("click", () => {
         uploadedFiles.splice(parseInt(btn.dataset.idx), 1);
         renderFileList();
+        updateDetectedPageCount();
       });
     });
   }
   fileInput.addEventListener("change", () => {
-    Array.from(fileInput.files).forEach((f) => uploadedFiles.push(f));
-    renderFileList();
+    addUploadedFiles(Array.from(fileInput.files));
     fileInput.value = "";
   });
   dropzone.addEventListener("dragover", (e) => {
@@ -749,8 +801,7 @@
   dropzone.addEventListener("drop", (e) => {
     e.preventDefault();
     dropzone.style.background = "";
-    Array.from(e.dataTransfer.files).forEach((f) => uploadedFiles.push(f));
-    renderFileList();
+    addUploadedFiles(Array.from(e.dataTransfer.files));
   });
 
   // ── Place order (POST to API) ────────────────
