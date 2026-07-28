@@ -597,6 +597,7 @@
   let selectedBinding = "none";
   let selectedPageMode = "all";
   let uploadedFiles = [];
+  let detectedPageCount = 0;
   const pdfPageCounts = new WeakMap();
   let pageDetectionPromise = Promise.resolve();
 
@@ -634,12 +635,12 @@
     });
   });
 
-  [numPages, customPagesInput, numCopies, readyByInput].forEach((el) => el.addEventListener("input", updateSummary));
+  [customPagesInput, numCopies, readyByInput].forEach((el) => el.addEventListener("input", updateSummary));
 
   function parseCustomPages(str) {
     if (!str || !str.trim()) return 1;
     const s = str.trim();
-    const totalPages = Math.max(1, parseInt(numPages.value, 10) || 1);
+    const totalPages = Math.max(1, detectedPageCount);
     const selectedPages = new Set();
 
     for (const part of s.split(",")) {
@@ -658,7 +659,7 @@
   }
 
   function computePrice() {
-    let pages = Math.max(1, parseInt(numPages.value) || 1);
+    let pages = Math.max(1, detectedPageCount);
     if (selectedPageMode === "custom") {
       pages = parseCustomPages(customPagesInput.value);
     }
@@ -750,7 +751,10 @@
     const pdfFiles = uploadedFiles.filter(isPdf);
     const pagesLabel = document.getElementById("pagesLabel");
     if (!pdfFiles.length) {
-      pagesLabel.textContent = "Total Pages in Doc";
+      detectedPageCount = 0;
+      numPages.textContent = "No file uploaded";
+      pagesLabel.textContent = "Document pages (auto-detected)";
+      updateSummary();
       return;
     }
 
@@ -762,20 +766,26 @@
       }));
       const totalPages = pdfFiles.reduce((sum, file) => sum + (pdfPageCounts.get(file) || 0), 0);
       if (totalPages) {
-        numPages.value = totalPages;
-        pagesLabel.textContent = `PDF pages detected: ${totalPages}`;
+        detectedPageCount = totalPages;
+        numPages.textContent = `${totalPages} page${totalPages === 1 ? "" : "s"}`;
+        pagesLabel.textContent = "Document pages (auto-detected)";
         updateSummary();
         renderFileList();
       }
     } catch (error) {
       console.error("Unable to count PDF pages", error);
-      pagesLabel.textContent = "Total Pages in Doc";
-      showToast("Could not read PDF pages. Please enter the page count.");
+      detectedPageCount = 0;
+      numPages.textContent = "Could not detect pages";
+      pagesLabel.textContent = "PDF page count unavailable";
+      showToast("Could not read this PDF's page count.");
     }
   }
 
   function addUploadedFiles(files) {
-    uploadedFiles.push(...files);
+    const pdfFiles = files.filter(isPdf);
+    if (pdfFiles.length !== files.length) showToast("Please upload PDF files only.");
+    if (!pdfFiles.length) return;
+    uploadedFiles.push(...pdfFiles);
     renderFileList();
     pageDetectionPromise = updateDetectedPageCount();
   }
@@ -832,6 +842,10 @@
     }
 
     await pageDetectionPromise;
+    if (!detectedPageCount) {
+      showToast("We could not detect the page count. Please upload a readable PDF.");
+      return;
+    }
     const { pages, copies, price } = computePrice();
     const customRangeStr = selectedPageMode === "custom" ? customPagesInput.value.trim() : "";
     const orderData = {
@@ -891,7 +905,8 @@
       document.getElementById("pickupTime").value = "";
       document.getElementById("fileNotes").value = "";
       document.getElementById("printInstr").value = "";
-      numPages.value = 1;
+      detectedPageCount = 0;
+      numPages.textContent = "No file uploaded";
       numCopies.value = 1;
       updateSummary();
     } catch (err) {

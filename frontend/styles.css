@@ -239,6 +239,11 @@ input[type=text], input[type=email], input[type=password], input[type=tel], inpu
   width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:9px;
   background:var(--bg); color:var(--text); font-size:13.5px; font-family:inherit;
 }
+input[readonly]{ background:var(--accent-soft); color:var(--text-sub); cursor:not-allowed; }
+.detected-page-count{
+  display:block; width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--border); border-radius:9px;
+  background:var(--accent-soft); color:var(--text-sub); font-size:13.5px; min-height:41px; cursor:default;
+}
 textarea{ min-height:64px; resize:vertical; }
 input::placeholder, textarea::placeholder{ color:var(--text-faint); }
 

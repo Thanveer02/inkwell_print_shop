@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Inkwell Print Shop — Fast, friendly xerox & printing. Place orders online and manage your print queue.">
-<title>Inkwell Print Shop — Fast Xerox & Printing</title>
+<meta name="description" content="Poongavanam Xerox — Fast, friendly xerox and printing. Place orders online and manage your print queue.">
+<title>Poongavanam Xerox — Fast Xerox & Printing</title>
 <link rel="stylesheet" href="styles.css">
 <script src="https://unpkg.com/parse/dist/parse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -27,7 +27,7 @@
       </svg>
     </span>
     <div class="brand-text">
-      <div class="brand-name">Inkwell Print Shop</div>
+      <div class="brand-name">Poongavanam Xerox</div>
       <div class="brand-tag">Fast, friendly xerox &amp; printing</div>
     </div>
   </div>
@@ -166,13 +166,13 @@
               <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" style="vertical-align:-2px;margin-right:6px;"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke-linecap="round" stroke-linejoin="round"/></svg>
               Files to print
             </div>
-            <div class="card-sub">Drop any file — PDF, docs, images, presentations.</div>
+            <div class="card-sub">Upload PDF files and we’ll count every page automatically.</div>
           </div>
           <label class="dropzone" id="dropzone">
-            <input type="file" id="fileInput" multiple hidden>
+            <input type="file" id="fileInput" accept="application/pdf,.pdf" multiple hidden>
             <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             <div class="dz-title">Click or drag files here</div>
-            <div class="dz-sub">Any file type, up to 25MB each</div>
+            <div class="dz-sub">PDF files only, up to 25MB each</div>
           </label>
           <div id="fileList" class="file-list"></div>
         </div>
@@ -201,8 +201,8 @@
 
           <div class="form-grid">
             <div class="field">
-              <label id="pagesLabel">Total Pages in Doc</label>
-              <input type="number" id="numPages" min="1" value="1" placeholder="e.g. 10">
+              <label id="pagesLabel" for="numPages">Document pages (auto-detected)</label>
+              <output id="numPages" class="detected-page-count" aria-live="polite" title="Page count is calculated from the uploaded files and cannot be changed">No file uploaded</output>
             </div>
             <div class="field" id="customPagesWrap" style="display: none;">
               <label>Custom Page Range / Pages to print</label>
@@ -347,7 +347,7 @@
           <rect x="6" y="14" width="12" height="7" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
         </svg>
       </div>
-      <h2 class="auth-title" id="authTitle">Welcome to Inkwell</h2>
+      <h2 class="auth-title" id="authTitle">Welcome to Poongavanam Xerox</h2>
       <p class="auth-sub" id="authSub">Sign in to place print orders or manage the shop queue</p>
 
       <div class="auth-tabs">
