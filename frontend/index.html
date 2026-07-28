@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Inkwell Print Shop — Fast, friendly xerox & printing. Place orders online and manage your print queue.">
+<title>Inkwell Print Shop — Fast Xerox & Printing</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://unpkg.com/parse/dist/parse.min.js"></script>
+</head>
+<body>
+
+<!-- Connection banner (hidden by default) -->
+<div class="conn-banner" id="connBanner">
+  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 1l22 22M16.72 11.06A10.94 10.94 0 0 1 19 12.55M5 12.55a10.94 10.94 0 0 1 5.17-2.39M10.71 5.05A16 16 0 0 1 22.56 9M1.42 9a15.91 15.91 0 0 1 4.7-2.88M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <span>Cannot reach server — showing cached data</span>
+</div>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-icon">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+        <path d="M6 9V3h12v6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="6" y="14" width="12" height="7" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+      </svg>
+    </span>
+    <div class="brand-text">
+      <div class="brand-name">Inkwell Print Shop</div>
+      <div class="brand-tag">Fast, friendly xerox &amp; printing</div>
+    </div>
+  </div>
+
+  <div class="topbar-actions">
+    <div id="userBar" style="display:flex; align-items:center; gap:10px;">
+      <div id="userInfo" style="display:none; align-items:center; gap:8px;">
+        <span class="user-badge" id="userRoleBadge">Customer</span>
+        <span id="userNameDisplay" style="font-weight:600; font-size:13.5px;">User</span>
+      </div>
+      <button class="view-btn" id="btnLoginBtn">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Sign In
+      </button>
+      <button class="view-btn" id="btnLogoutBtn" style="display:none;">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Logout
+        
+      </button>
+    </div>
+    <button class="icon-btn" id="btnDark" title="Toggle dark mode">
+      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="page">
+
+  <!-- ================= ADMIN VIEW ================= -->
+  <section id="adminView" class="view">
+    <h1 class="page-title">Shop control room</h1>
+    <p class="page-sub">Manage today's orders, run the queue, and keep customers moving.</p>
+
+    <nav class="tabs">
+      <button class="tab active" data-tab="dashboard">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.2"/><rect x="14" y="3" width="7" height="7" rx="1.2"/><rect x="3" y="14" width="7" height="7" rx="1.2"/><rect x="14" y="14" width="7" height="7" rx="1.2"/></svg>
+        Dashboard
+      </button>
+      <button class="tab" data-tab="queue">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h11M4 18h7"/></svg>
+        Queue
+      </button>
+      <button class="tab" data-tab="orders">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 9h18M9 9v11"/></svg>
+        Orders
+      </button>
+    </nav>
+
+    <!-- Dashboard tab -->
+    <div class="tab-panel active" id="panel-dashboard">
+      <div class="stat-grid">
+        <div class="stat-card stat-pending">
+          <div class="stat-label">Pending</div>
+          <div class="stat-value" id="statPending"><span class="skeleton-text">0</span></div>
+        </div>
+        <div class="stat-card stat-progress">
+          <div class="stat-label">In progress</div>
+          <div class="stat-value" id="statProgress"><span class="skeleton-text">0</span></div>
+        </div>
+        <div class="stat-card stat-hold">
+          <div class="stat-label">On hold</div>
+          <div class="stat-value" id="statHold"><span class="skeleton-text">0</span></div>
+        </div>
+        <div class="stat-card stat-revenue">
+          <div class="stat-label">Revenue today</div>
+          <div class="stat-value" id="statRevenue"><span class="skeleton-text">₹0</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">Recent orders</div>
+          <div class="card-sub">Latest 6 orders across all statuses.</div>
+        </div>
+        <div class="table-wrap">
+          <table class="orders-table" id="recentTable">
+            <tr><td colspan="7"><div class="loading-bar"></div></td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Queue tab -->
+    <div class="tab-panel" id="panel-queue">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">Live queue</div>
+          <div class="card-sub">Active jobs, soonest ready-by first.</div>
+        </div>
+        <div class="queue-list" id="queueList">
+          <div class="loading-bar"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Orders tab -->
+    <div class="tab-panel" id="panel-orders">
+      <div class="card">
+        <div class="card-head orders-head">
+          <div>
+            <div class="card-title">All orders</div>
+            <div class="card-sub">Search and filter the full order history.</div>
+          </div>
+          <div class="orders-controls">
+            <input type="text" id="orderSearch" placeholder="Search name, order id...">
+            <select id="orderFilter">
+              <option value="all">All statuses</option>
+              <option value="Pending">Pending</option>
+              <option value="Printed">Printed</option>
+              <option value="In progress">In progress</option>
+              <option value="On hold">On hold</option>
+              <option value="Completed">Completed</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="orders-table" id="allTable">
+            <tr><td colspan="7"><div class="loading-bar"></div></td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CUSTOMER VIEW ================= -->
+  <section id="customerView" class="view" style="display:none;">
+    <h1 class="page-title">Place a print order</h1>
+    <p class="page-sub">Upload your files, pick your options, and we'll have it ready.</p>
+
+    <div class="order-layout">
+      <div class="order-main">
+
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" style="vertical-align:-2px;margin-right:6px;"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Files to print
+            </div>
+            <div class="card-sub">Drop any file — PDF, docs, images, presentations.</div>
+          </div>
+          <label class="dropzone" id="dropzone">
+            <input type="file" id="fileInput" multiple hidden>
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="dz-title">Click or drag files here</div>
+            <div class="dz-sub">Any file type, up to 25MB each</div>
+          </label>
+          <div id="fileList" class="file-list"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" style="vertical-align:-2px;margin-right:6px;"><rect x="4" y="3" width="12" height="16" rx="1.2"/><rect x="8" y="7" width="12" height="16" rx="1.2" fill="var(--bg-card)"/></svg>
+              Print options
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Page Selection</label>
+            <div class="option-pair" style="margin-bottom: 10px;">
+              <button class="option-card active" data-group="pageMode" data-value="all">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>
+                <div><strong>All Pages</strong><span>Print entire document</span></div>
+              </button>
+              <button class="option-card" data-group="pageMode" data-value="custom">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                <div><strong>Custom Pages</strong><span>Select specific pages</span></div>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="field">
+              <label id="pagesLabel">Total Pages in Doc</label>
+              <input type="number" id="numPages" min="1" value="1" placeholder="e.g. 10">
+            </div>
+            <div class="field" id="customPagesWrap" style="display: none;">
+              <label>Custom Page Range / Pages to print</label>
+              <input type="text" id="customPagesInput" placeholder="e.g. 1-5, 8, 11-15 or 5">
+            </div>
+            <div class="field">
+              <label>Copies</label>
+              <input type="number" id="numCopies" min="1" value="1">
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Color mode</label>
+            <div class="option-pair">
+              <button class="option-card active" data-group="color" data-value="bw">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8"/></svg>
+                <div><strong>Black &amp; White</strong><span>₹1/page (₹1.3 double)</span></div>
+              </button>
+              <button class="option-card" data-group="color" data-value="color">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8"/></svg>
+                <div><strong>Color</strong><span>₹5/page</span></div>
+              </button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Sides</label>
+            <div class="option-pair">
+              <button class="option-card active" data-group="sides" data-value="single">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="5" y="3" width="14" height="18" rx="1.4"/></svg>
+                <div><strong>Single-sided</strong><span>₹1 / page</span></div>
+              </button>
+              <button class="option-card" data-group="sides" data-value="double">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="3" width="10" height="18" rx="1.2"/><rect x="10" y="3" width="10" height="18" rx="1.2" fill="var(--bg-card)"/></svg>
+                <div><strong>Double-sided</strong><span>₹1.3 / page</span></div>
+              </button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Paper Type</label>
+            <div class="option-pair triple-opt">
+              <button class="option-card active" data-group="paperType" data-value="standard">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="3" width="16" height="18" rx="1.5"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                <div><strong>Standard</strong><span>Standard 75gsm</span></div>
+              </button>
+              <button class="option-card" data-group="paperType" data-value="bond">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <div><strong>Bond Paper</strong><span>₹5/page</span></div>
+              </button>
+              <button class="option-card" data-group="paperType" data-value="certificate">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 15l-2 5 3-1.5L16 20l-2-5"/><circle cx="12" cy="9" r="6"/></svg>
+                <div><strong>Certificate Sheet</strong><span>₹20/sheet</span></div>
+              </button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Binding</label>
+            <div class="option-pair">
+              <button class="option-card active" data-group="binding" data-value="none">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                <div><strong>No Binding</strong><span>Loose sheets</span></div>
+              </button>
+              <button class="option-card" data-group="binding" data-value="spiral">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 3v18M10 3v18M14 3v18M18 3v18"/><path d="M4 6h16M4 12h16M4 18h16" stroke-dasharray="2 2"/></svg>
+                <div><strong>Spiral Binding</strong><span>₹25 (&lt;100p) / ₹30 (≥100p)</span></div>
+              </button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Ready by</label>
+            <input type="datetime-local" id="readyBy">
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Customer details</div>
+          </div>
+          <div class="form-grid">
+            <div class="field">
+              <label>Full name</label>
+              <input type="text" id="custName" placeholder="e.g. Ananya Rao">
+            </div>
+            <div class="field">
+              <label>Phone number</label>
+              <input type="text" id="custPhone" placeholder="+91 98...">
+            </div>
+          </div>
+          <div class="field">
+            <label>Pickup time</label>
+            <input type="text" id="pickupTime" placeholder="e.g. Today 6:30 PM">
+          </div>
+          <div class="field">
+            <label>Notes about the file</label>
+            <textarea id="fileNotes" placeholder="e.g. Print only pages 3-10, special paper"></textarea>
+          </div>
+          <div class="field">
+            <label>Print instructions</label>
+            <textarea id="printInstr" placeholder="Binding, stapling, trimming — anything special"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <aside class="order-side">
+        <div class="card summary-card">
+          <div class="card-title" style="margin-bottom:2px;">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" style="vertical-align:-2px;margin-right:6px;"><rect x="3" y="6" width="18" height="13" rx="1.5"/><path d="M3 10h18"/></svg>
+            Order summary
+          </div>
+          <div class="summary-total" id="summaryTotal">₹1</div>
+          <div class="summary-caption">Auto-calculated · min charge ₹1</div>
+
+          <div class="summary-row"><span>Pages × copies</span><strong id="sumPagesCopies">1 × 1</strong></div>
+          <div class="summary-row"><span>Paper Type</span><strong id="sumPaperType">Standard</strong></div>
+          <div class="summary-row"><span>Color</span><strong id="sumColor">B&amp;W</strong></div>
+          <div class="summary-row"><span>Sides</span><strong id="sumSides">Single</strong></div>
+          <div class="summary-row"><span>Binding</span><strong id="sumBinding">None</strong></div>
+          <div class="summary-row"><span>Ready by</span><strong id="sumReadyBy">—</strong></div>
+
+          <button class="place-order-btn" id="placeOrderBtn">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Place order
+          </button>
+          <div class="summary-note">You'll get a confirmation once the shop accepts your order.</div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+<!-- ================= AUTH MODAL ================= -->
+<div class="modal-overlay" id="authModal">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="brand-icon" style="margin:0 auto 10px; width:44px; height:44px;">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="24" height="24">
+          <path d="M6 9V3h12v6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <rect x="6" y="14" width="12" height="7" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h2 class="auth-title" id="authTitle">Welcome to Inkwell</h2>
+      <p class="auth-sub" id="authSub">Sign in to place print orders or manage the shop queue</p>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tabLoginBtn">Sign In</button>
+        <button class="auth-tab" id="tabRegisterBtn">Register</button>
+      </div>
+    </div>
+
+    <!-- Login Form -->
+    <form id="loginForm" class="auth-form">
+      <div class="field">
+        <label>Email Address</label>
+        <input type="email" id="loginEmail" placeholder="e.g. name@example.com" required>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" required>
+      </div>
+      <div class="auth-error" id="loginError"></div>
+      <button type="submit" class="auth-submit-btn" id="loginSubmitBtn">
+        Sign In
+      </button>
+    </form>
+
+    <!-- Register Form -->
+    <form id="registerForm" class="auth-form" style="display:none;">
+      <div class="field">
+        <label>Full Name</label>
+        <input type="text" id="regName" placeholder="e.g. Ananya Rao" required>
+      </div>
+      <div class="field">
+        <label>Email Address</label>
+        <input type="email" id="regEmail" placeholder="e.g. ananya@example.com" required>
+      </div>
+      <div class="field">
+        <label>Phone Number</label>
+        <input type="tel" id="regPhone" placeholder="+91 98765 43210" required>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="regPassword" placeholder="Minimum 6 characters" required>
+      </div>
+      <div class="auth-error" id="regError"></div>
+      <button type="submit" class="auth-submit-btn" id="regSubmitBtn">
+        Create Account
+      </button>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
