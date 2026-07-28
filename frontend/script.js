@@ -598,6 +598,7 @@
   let selectedPageMode = "all";
   let uploadedFiles = [];
   const pdfPageCounts = new WeakMap();
+  let pageDetectionPromise = Promise.resolve();
 
   if (window.pdfjsLib) {
     window.pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -747,7 +748,13 @@
 
   async function updateDetectedPageCount() {
     const pdfFiles = uploadedFiles.filter(isPdf);
-    if (!pdfFiles.length) return;
+    const pagesLabel = document.getElementById("pagesLabel");
+    if (!pdfFiles.length) {
+      pagesLabel.textContent = "Total Pages in Doc";
+      return;
+    }
+
+    pagesLabel.textContent = "Detecting PDF pages...";
 
     try {
       await Promise.all(pdfFiles.map(async (file) => {
@@ -756,11 +763,13 @@
       const totalPages = pdfFiles.reduce((sum, file) => sum + (pdfPageCounts.get(file) || 0), 0);
       if (totalPages) {
         numPages.value = totalPages;
+        pagesLabel.textContent = `PDF pages detected: ${totalPages}`;
         updateSummary();
         renderFileList();
       }
     } catch (error) {
       console.error("Unable to count PDF pages", error);
+      pagesLabel.textContent = "Total Pages in Doc";
       showToast("Could not read PDF pages. Please enter the page count.");
     }
   }
@@ -768,7 +777,7 @@
   function addUploadedFiles(files) {
     uploadedFiles.push(...files);
     renderFileList();
-    updateDetectedPageCount();
+    pageDetectionPromise = updateDetectedPageCount();
   }
 
   function renderFileList() {
@@ -783,7 +792,7 @@
       btn.addEventListener("click", () => {
         uploadedFiles.splice(parseInt(btn.dataset.idx), 1);
         renderFileList();
-        updateDetectedPageCount();
+        pageDetectionPromise = updateDetectedPageCount();
       });
     });
   }
@@ -822,6 +831,7 @@
       return;
     }
 
+    await pageDetectionPromise;
     const { pages, copies, price } = computePrice();
     const customRangeStr = selectedPageMode === "custom" ? customPagesInput.value.trim() : "";
     const orderData = {
